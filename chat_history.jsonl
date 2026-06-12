@@ -1,0 +1,17 @@
+{"conversation_id":"c1","timestamp":"2026-02-05T09:00:10Z","sender":"buyer","text":"Chào bạn, mình tìm xe tay ga tầm 25tr ở HCM, xe đẹp chút"}
+{"conversation_id":"c1","timestamp":"2026-02-05T09:00:40Z","sender":"agent","text":"Dạ bạn có ưu tiên hãng hay đời xe khoảng bao nhiêu không ạ?"}
+{"conversation_id":"c1","timestamp":"2026-02-05T09:01:15Z","sender":"buyer","text":"Honda hoặc Yamaha, đời 2020 trở lên, odo thấp"}
+{"conversation_id":"c1","timestamp":"2026-02-05T09:02:30Z","sender":"seller","text":"Mình có Air Blade 2021, odo 19k, giá mình muốn bán là 32tr"}
+{"conversation_id":"c1","timestamp":"2026-02-05T09:03:05Z","sender":"buyer","text":"32tr cao quá, mình chỉ mua tối đa 25-26tr thôi"}
+{"conversation_id":"c1","timestamp":"2026-02-05T09:03:50Z","sender":"agent","text":"Để mình hỏi thêm tình trạng xe và xem có phương án thương lượng phù hợp cho hai bên nhé"}
+{"conversation_id":"c1","timestamp":"2026-02-05T09:04:30Z","sender":"seller","text":"Xe mình giữ kỹ, máy móc zin, giá đó là giá hợp lý rồi, khó giảm sâu lắm"}
+{"conversation_id":"c2","timestamp":"2026-02-06T10:10:00Z","sender":"buyer","text":"Mình thấy có con Vision bên bạn đăng, giấy tờ sao vậy?"}
+{"conversation_id":"c2","timestamp":"2026-02-06T10:10:40Z","sender":"seller","text":"Xe thì ok, nhưng giấy tờ đang chờ rút hồ sơ gốc, chưa sang tên được ngay"}
+{"conversation_id":"c2","timestamp":"2026-02-06T10:11:20Z","sender":"buyer","text":"Vậy có rủi ro gì không? Mình hơi ngại vụ giấy tờ"}
+{"conversation_id":"c2","timestamp":"2026-02-06T10:12:00Z","sender":"agent","text":"Mình sẽ kiểm tra lại quy trình giấy tờ và tư vấn kỹ cho bạn trước khi quyết định nhé"}
+{"conversation_id":"c2","timestamp":"2026-02-06T10:13:10Z","sender":"seller","text":"Nếu bạn cần gấp giấy tờ sang tên liền thì xe này chưa phù hợp đâu"}
+{"conversation_id":"c3","timestamp":"2026-02-07T14:20:00Z","sender":"buyer","text":"Mình muốn xem xe và nhờ bên bạn hỗ trợ kết nối với người bán"}
+{"conversation_id":"c3","timestamp":"2026-02-07T14:20:40Z","sender":"seller","text":"Mình chỉ bán trực tiếp cho người mua thôi, không muốn qua trung gian hay môi giới"}
+{"conversation_id":"c3","timestamp":"2026-02-07T14:21:10Z","sender":"buyer","text":"Vậy bên này có hỗ trợ gì không hay mình tự liên hệ?"}
+{"conversation_id":"c3","timestamp":"2026-02-07T14:21:50Z","sender":"agent","text":"Bên mình chủ yếu hỗ trợ kết nối và đảm bảo quy trình giao dịch an toàn cho hai bên"}
+{"conversation_id":"c3","timestamp":"2026-02-07T14:22:30Z","sender":"seller","text":"Mình không cần bên thứ ba đứng giữa, chỉ cần số điện thoại người mua là được"}

@@ -1,0 +1,288 @@
+# AI Product Engineer Take-Home Assignment
+
+## **Topic: AI Chat Agent for Motorbike Marketplace**
+
+### Background
+
+You are building an **AI chat agent** for a motorbike marketplace.
+
+The agent sits between **buyers** and **sellers**, helps them communicate, and performs **actions** to increase the chance of closing a deal.
+
+This is **not** a toy chatbot. Think in terms of:
+
+- tools (APIs)
+- memory
+- state
+- logs
+- evaluation
+- iteration based on data
+
+We intentionally keep this assignment **vague but bounded** so you can show your **thinking process, system design, and trade-offs**.
+
+---
+
+## Your Task
+
+Design and/or build a prototype of an AI agent that:
+
+1. Receives messages from buyers and sellers
+2. Understands context from **unstructured chat history**
+3. Uses **tools (internal APIs)** to perform actions
+4. Uses **memory** to store and retrieve important facts
+5. Maintains a **structured state** per conversation / lead
+6. Has an **evaluation + feedback loop** to improve over time
+
+You can choose one of these approaches:
+
+- A working prototype (preferred)
+- A detailed concept + system design
+- A mix of both
+
+---
+
+## Provided Data
+
+You will receive:
+
+- `chat_history.jsonl`: sample unstructured conversation logs (buyer, seller, agent mixed)
+
+Your system should:
+
+- Parse and normalize these logs
+- Extract key facts and signals
+- Update structured state
+- Decide next actions
+- Log events and decisions
+
+---
+
+## Internal Tools (You can mock these)
+
+You can assume the following tools exist (or implement simple mocks):
+
+1. `search_listings(query)`
+    - Input: brand, model, year_range, price_range, location, keywords
+    - Output: list of listings
+2. `get_listing_detail(listing_id)`
+    - Output: detailed info about one listing
+3. `create_chat_bridge(buyer_id, seller_id, listing_id)`
+    - Output: channel_id
+4. `book_appointment(channel_id, time, place)`
+    - Output: booking status
+5. `log_event(conversation_id, event)`
+    - Event types: `USER_MESSAGE`, `AGENT_ACTION`, `TOOL_CALL`, `TOOL_RESULT`, `STATE_UPDATE`, `ESCALATION`, `HANDOFF`, `FEEDBACK`
+
+The agent should **decide when and why** to call these tools (not hardcode everything).
+
+---
+
+## Required Design Artifacts
+
+### 1. State Schema (JSON)
+
+Design a structured state per conversation, for example:
+
+- participants (buyer_id, seller_id)
+- lead_stage: `DISCOVERY | MATCHING | NEGOTIATION | APPOINTMENT | CLOSING | DROPPED`
+- constraints: budget, location, brand preferences, deal-breakers
+- listing_context: selected listing(s), key attributes
+- open_questions: what is still missing?
+- risks: red flags (e.g. paperwork issues, high ODO)
+- next_best_action: what to do next and why
+- tool_history
+- summary: compact conversation summary
+
+- Why you chose this structure
+- What is stored vs not stored
+
+### 1.1. Shared State Schema (after Buyer, Seller, and Operator join the Negotiation)
+
+When buyer and seller are matched and connected, and optionally an operator joins to assist with legal risks or escrow processes, their structured states are dynamically merged into a unified shared state for the bridge room (e.g., `c1_bridge`). 
+
+Below is the structured schema describing this shared state:
+
+| Field (JSON Path) | Type | Role / Description | Value after Matching (Direct Chat) | Value after Operator Joins (Escalated) |
+| :--- | :--- | :--- | :--- | :--- |
+| `participants` | Object | Identifiers of all active parties in the transaction. | `{ "buyer_id": "buyer_id", "seller_id": "seller_id" }` | `{ "buyer_id": "buyer_id", "seller_id": "seller_id", "operator_id": "op_nam_01" }` |
+| `lead_stage` | String | Current milestone of the transaction. | `"NEGOTIATION"` or `"APPOINTMENT"` | `"ESCALATED"` |
+| `location` | String | Location for vehicle viewing/inspection. | `"HCM"` | `"HCM"` |
+| `budget` | Object | Buyer's budget bounds used by AI for negotiation. | `{ "target": 25000000, "max": 26000000 }` | `{ "target": 25000000, "max": 26000000 }` |
+| `preferences` | Object | Buyer's requirements (brands, type, min year). | `{ "types": ["scooter"], "brands": ["Honda"], "min_year": 2020 }` | `{ "types": ["scooter"], "brands": ["Honda"], "min_year": 2020 }` |
+| `seller_profile` | Object | Vehicle specs and seller's initial asking price. | `{ "asking_price": 32000000, "vehicle_info": { "brand": "Honda", "model": "Air Blade", "year": 2021 } }` | `{ "asking_price": 32000000, "vehicle_info": { ... } }` |
+| `negotiated_price` | Number | Final price agreed upon by both parties. | `31500000` (Seller agrees to drop 500k for fuel) | `31000000` (After Operator mediates further) |
+| `risks_detected` | Array | Warning categories detected by the extraction engine. | `[{ "category": "pricing_conflict", "severity": "high", "description": "Price gap > 20%" }]` | `[{ "category": "pricing_conflict" }, { "category": "paperwork_risk", "severity": "high", "description": "Original papers pending" }]` |
+| `operator_notes` | String | Free-form operational notes when human assistance is requested. | *null* | `"Supported buyer with safe escrow instructions due to pending title transfer."` |
+| `next_best_action` | Object | Suggested next step computed by the reasoning engine. | `{ "action": "propose_financing", "reason": "Budget mismatch" }` | `{ "action": "verify_escrow_deposit", "reason": "Escrow terms agreed" }` |
+
+---
+
+### 2. Memory Strategy
+
+Explain and/or implement:
+
+- What information should be stored as memory?
+- What should stay only in raw logs?
+- How do you retrieve memory into context?
+- How do you **compact** memory over time (summaries, pruning noise)?
+
+We expect you to distinguish:
+
+- Raw logs
+- Structured memory
+- Rolling summary
+
+---
+
+### 3. Unstructured Data Handling
+
+From `chat_history.jsonl`:
+
+- Normalize messages (sender, time, text)
+- Extract:
+    - intents
+    - constraints (price, location, brand, year, ODO, paperwork, etc.)
+    - risk signals
+- Map them into your state schema
+- Log important events
+
+---
+
+### 4. Agent Behavior
+
+Your agent should be able to:
+
+- Ask clarifying questions
+- Decide when to search listings
+- Decide when to connect buyer ↔ seller
+- Decide when to book appointments
+- Detect risk cases and **escalate / handoff** if needed
+- Propose a reasonable “next best action” based on state
+
+---
+
+## Evaluation & Feedback Loop (Very Important)
+
+### 1. Problem Statement
+
+Define clearly:
+
+- What does “success” mean?
+    - More booked appointments?
+    - Faster matching?
+    - Higher close rate?
+- What is your main hypothesis?
+
+---
+
+### 2. Metrics (Examples)
+
+You don’t have to use all of these, but you should define **some**:
+
+**Task success**
+
+- Match success rate
+- Appointment booking rate
+- Escalation correctness
+- Next-action correctness
+
+**Quality**
+
+- Slot coverage (how much important info is collected)
+- Hallucination rate
+- Policy / safety violations
+
+**Business-oriented**
+
+- Time to first qualified match
+- Drop-off after seller contact
+
+---
+
+### 3. Error Analysis
+
+Pick 5–10 examples from the logs and analyze:
+
+- Wrong intent understanding
+- Wrong tool usage
+- Missing or wrong memory
+- Wrong state transition
+- Missing escalation
+
+Explain:
+
+- Why did it fail?
+- What signal was missing?
+- How would you fix it?
+
+---
+
+### 4. Feedback Loop
+
+Propose at least a minimal loop:
+
+- Collect outcome signals (booked? closed? dropped?)
+- Store `(context, state, action, outcome)`
+- Use them to:
+    - Improve few-shot examples
+    - Improve tool routing
+    - Improve extraction or state updates
+
+---
+
+## Deliverables
+
+- A README explaining:
+    - Your understanding of the problem
+    - Architecture and flow
+    - Key design decisions and trade-offs
+    - Failure modes
+    - How you would iterate next
+- Your state schema and tool schema
+- Your memory strategy
+- Your evaluation plan
+- (If code) A repo that can run locally with sample data
+
+---
+
+## What We Care About Most
+
+- Your **thinking process**
+- How you reason about **state, memory, tools, and failure modes**
+- How you define **success and evaluation**
+- How you balance **product goals vs engineering constraints**
+
+A simple but well-reasoned system beats a complex but fragile one.
+
+## Data
+
+✅ Sample Data — `chat_history.jsonl`
+
+```jsx
+{"conversation_id":"c1","timestamp":"2026-02-05T09:00:10Z","sender":"buyer","text":"Chào bạn, mình tìm xe tay ga tầm 25tr ở HCM, xe đẹp chút"}
+{"conversation_id":"c1","timestamp":"2026-02-05T09:00:40Z","sender":"agent","text":"Dạ bạn có ưu tiên hãng hay đời xe khoảng bao nhiêu không ạ?"}
+{"conversation_id":"c1","timestamp":"2026-02-05T09:01:15Z","sender":"buyer","text":"Honda hoặc Yamaha, đời 2020 trở lên, odo thấp"}
+{"conversation_id":"c1","timestamp":"2026-02-05T09:02:30Z","sender":"seller","text":"Mình có Air Blade 2021, odo 19k, giá mình muốn bán là 32tr"}
+{"conversation_id":"c1","timestamp":"2026-02-05T09:03:05Z","sender":"buyer","text":"32tr cao quá, mình chỉ mua tối đa 25-26tr thôi"}
+{"conversation_id":"c1","timestamp":"2026-02-05T09:03:50Z","sender":"agent","text":"Để mình hỏi thêm tình trạng xe và xem có phương án thương lượng phù hợp cho hai bên nhé"}
+{"conversation_id":"c1","timestamp":"2026-02-05T09:04:30Z","sender":"seller","text":"Xe mình giữ kỹ, máy móc zin, giá đó là giá hợp lý rồi, khó giảm sâu lắm"}
+
+{"conversation_id":"c2","timestamp":"2026-02-06T10:10:00Z","sender":"buyer","text":"Mình thấy có con Vision bên bạn đăng, giấy tờ sao vậy?"}
+{"conversation_id":"c2","timestamp":"2026-02-06T10:10:40Z","sender":"seller","text":"Xe thì ok, nhưng giấy tờ đang chờ rút hồ sơ gốc, chưa sang tên được ngay"}
+{"conversation_id":"c2","timestamp":"2026-02-06T10:11:20Z","sender":"buyer","text":"Vậy có rủi ro gì không? Mình hơi ngại vụ giấy tờ"}
+{"conversation_id":"c2","timestamp":"2026-02-06T10:12:00Z","sender":"agent","text":"Mình sẽ kiểm tra lại quy trình giấy tờ và tư vấn kỹ cho bạn trước khi quyết định nhé"}
+{"conversation_id":"c2","timestamp":"2026-02-06T10:13:10Z","sender":"seller","text":"Nếu bạn cần gấp giấy tờ sang tên liền thì xe này chưa phù hợp đâu"}
+
+{"conversation_id":"c3","timestamp":"2026-02-07T14:20:00Z","sender":"buyer","text":"Mình muốn xem xe và nhờ bên bạn hỗ trợ kết nối với người bán"}
+{"conversation_id":"c3","timestamp":"2026-02-07T14:20:40Z","sender":"seller","text":"Mình chỉ bán trực tiếp cho người mua thôi, không muốn qua trung gian hay môi giới"}
+{"conversation_id":"c3","timestamp":"2026-02-07T14:21:10Z","sender":"buyer","text":"Vậy bên này có hỗ trợ gì không hay mình tự liên hệ?"}
+{"conversation_id":"c3","timestamp":"2026-02-07T14:21:50Z","sender":"agent","text":"Bên mình chủ yếu hỗ trợ kết nối và đảm bảo quy trình giao dịch an toàn cho hai bên"}
+{"conversation_id":"c3","timestamp":"2026-02-07T14:22:30Z","sender":"seller","text":"Mình không cần bên thứ ba đứng giữa, chỉ cần số điện thoại người mua là được"}
+```
+
+**Suggested objections**
+
+c1: Seller wants to sell at a high price. Buyer wants to buy at a low price (price tension / negotiation)
+
+c2: Document risk
+
+c3: Seller does not want to go through intermediaries

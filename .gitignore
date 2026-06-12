@@ -1,0 +1,30 @@
+# Dependency directories
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# Build outputs
+dist/
+frontend/dist/
+.next/
+out/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+backend/.env
+frontend/.env
+
+# Local simulation output and logs
+parsed_output.json
+*.log
+backend/parsed_output.json
+
+# IDE / System files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
