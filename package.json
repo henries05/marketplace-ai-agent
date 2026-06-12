@@ -1,0 +1,10 @@
+{
+  "name": "marketplace-ai-agent-root",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "install-all": "npm install --prefix frontend && npm install --prefix backend",
+    "build-frontend": "npm run build --prefix frontend",
+    "vercel-build": "npm run install-all && npm run build-frontend"
+  }
+}
